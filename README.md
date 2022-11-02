@@ -18,33 +18,6 @@ both symmetric and asymmetric keys. Some features of Keyczar include:
  * Perl, Java, Python, and C++ implementations
 
 
-INSTALLATION
-------------
-To install this module type the following:
-
-   perl Makefile.PL
-   make
-   make test
-   make install
-
-QUICK START
------------
-1. Create new 'keyset' by 'keyczar' tool:
-
-  $ keyczar create --location=/path/to/keyset --purpose=crypt
-
-2. Add new key to 'keyset':
-
-  $ keyczar addkey --location=/path/to/keyset --status=primary
-
-3. Encrypt message with 'keyset':
-
-  $ perl > msg.txt
-  use Crypt::Keyczar::Crypter;
-  my $kcz = Crypt::Keyczar::Crypter->new("/path/to/keyset");
-  print $kcz->encrypt('Hello World!');
-  __END__
-
 SUPPORTED CRYPTOGRAPHIC ALGORITHMS(current version)
 ---------------------------------------------------
 * HMAC
@@ -76,6 +49,15 @@ This module requires these other modules and libraries:
   MIME::Base64
   JSON (version 1.xxx or 2.xxx)
 
+
+CREATE KEYS
+-----------
+  ```shell
+  docker build --platform linux/amd64 -t keyczar .
+  ./keyczar.sh create --location=/home/ubuntu/secrets-keyczar --purpose=crypt --name=split --type=AES
+  ./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar -size=256
+  ./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar --status=primary -size=256
+  ```
 
 SEE ALSO
 --------
