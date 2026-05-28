@@ -17,7 +17,6 @@ both symmetric and asymmetric keys. Some features of Keyczar include:
 
  * Perl, Java, Python, and C++ implementations
 
-
 SUPPORTED CRYPTOGRAPHIC ALGORITHMS(current version)
 ---------------------------------------------------
 * HMAC
@@ -49,15 +48,32 @@ This module requires these other modules and libraries:
   MIME::Base64
   JSON (version 1.xxx or 2.xxx)
 
+USE CASE
+--------
+
+FME service called **webadmin** uses this module to encrypt data.
+Every new environment (single or multi tenant) needs a new key.
+
+PREREQUISITES
+-------------
+
+- S3 bucket created.
+- S3 actions allowed in the IAM policy for webadmin.
 
 CREATE KEYS
 -----------
-  ```shell
-  docker build --platform linux/amd64 -t keyczar .
-  ./keyczar.sh create --location=/home/ubuntu/secrets-keyczar --purpose=crypt --name=split --type=AES
-  ./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar -size=256
-  ./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar --status=primary -size=256
-  ```
+```bash
+# Build the container (Dependencies are too old to be used locally)
+docker build --platform linux/amd64 -t keyczar .
+
+# Execute script (will run within the container)
+./keyczar.sh create --location=/home/ubuntu/secrets-keyczar --purpose=crypt --name=split --type=AES
+./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar --size=256
+./keyczar.sh addkey --location=/home/ubuntu/secrets-keyczar --status=primary --size=256
+
+# Upload files to S3 while keeping the folder structure
+aws --profile $PROFILE --region $REGION s3 cp secrets-keyczar/ s3://$SECRETS_BUCKET/secrets-keyczar/ --recursive
+```
 
 SEE ALSO
 --------

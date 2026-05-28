@@ -1,47 +1,40 @@
+# Build stage
+FROM ubuntu:18.04 AS builder
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && \
+    apt-get install -y \
+    build-essential \
+    libssl-dev \
+    libjson-perl \
+    perl && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY . /usr/src/keyczar/
+
+WORKDIR /usr/src/keyczar
+
+RUN perl Makefile.PL && \
+    make test && \
+    make install
+
+# Runtime stage
 FROM ubuntu:18.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update
-
-RUN apt-get install -y locales
-
-RUN locale-gen \
-    en_US.UTF-8 &&\
-    update-locale LANG=en_US.UTF-8
-
-ENV LANG=en_US.UTF-8
-
-RUN apt-get -y install \
-    build-essential \
-    libssl-dev \
+RUN apt-get update && apt-get -y install \
+    libssl1.1 \
     libjson-perl \
-    bash-completion \
-    sudo
+    perl && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
-COPY . /usr/src/keyzcar/
+COPY --from=builder /usr/local/lib/x86_64-linux-gnu/perl/ /usr/local/lib/x86_64-linux-gnu/perl/
+COPY --from=builder /usr/local/bin/keyczar /usr/local/bin/keyczar
 
-WORKDIR /usr/src/keyzcar
-
-RUN perl Makefile.PL &&\
-    make test &&\
-    make install
-
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-RUN adduser --disabled-password --gecos "ubuntu" ubuntu && \
-    adduser ubuntu sudo && \
-    echo "ubuntu ALL=(ALL:ALL) NOPASSWD: ALL" >> /etc/sudoers && \
-    touch /home/ubuntu/.sudo_as_admin_successful && \
-    chown -R root:sudo /usr/local
-
-RUN cp /home/ubuntu/.bashrc /root/.bashrc
-
-WORKDIR /home/ubuntu
-
-ENV TERM=xterm-256color
-
+RUN useradd -m ubuntu
 USER ubuntu
+WORKDIR /home/ubuntu
 
 ENTRYPOINT ["keyczar"]
